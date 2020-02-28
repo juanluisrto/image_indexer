@@ -1,0 +1,6 @@
+out/*
+build/*
+.idea/
+index/
+index.config/
+.gradle/
