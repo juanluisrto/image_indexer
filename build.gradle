@@ -23,6 +23,7 @@ dependencies {
 
     compile fileTree(dir: 'lib', include: '*.jar')
     // runtime fileTree(dir: 'lib', include: '*.jar')
+    implementation 'com.drewnoakes:metadata-extractor:2.13.0'
 }
 
 sourceSets {

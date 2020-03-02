@@ -4,3 +4,5 @@ build/*
 index/
 index.config/
 .gradle/
+.DS_Store
+img/

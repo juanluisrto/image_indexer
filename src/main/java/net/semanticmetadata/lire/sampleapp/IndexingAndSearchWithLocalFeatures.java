@@ -39,6 +39,7 @@
  */
 package net.semanticmetadata.lire.sampleapp;
 
+import com.drew.imaging.ImageProcessingException;
 import net.semanticmetadata.lire.aggregators.AbstractAggregator;
 import net.semanticmetadata.lire.aggregators.BOVW;
 import net.semanticmetadata.lire.builders.DocumentBuilder;
@@ -67,7 +68,7 @@ import java.nio.file.Paths;
  * @author Mathias Lux, mathias@juggle.at
  */
 public class IndexingAndSearchWithLocalFeatures {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ImageProcessingException {
         // indexing all images in "testdata"
         index("index", "img");
         // searching through the images.
@@ -79,7 +80,7 @@ public class IndexingAndSearchWithLocalFeatures {
      * @param indexPath
      * @throws IOException
      */
-    public static void search(String indexPath) throws IOException {
+    public static void search(String indexPath) throws IOException, ImageProcessingException {
         IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)));
 
         // make sure that this matches what you used for indexing (see below) ...
