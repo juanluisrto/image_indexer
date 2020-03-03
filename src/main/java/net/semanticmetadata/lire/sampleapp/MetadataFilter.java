@@ -15,7 +15,6 @@ import net.semanticmetadata.lire.searchers.ImageSearcher;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.store.FSDirectory;
-import net.semanticmetadata.lire.sampleapp.IndexingAndSearchWithLocalFeatures;
 
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -25,25 +24,35 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MetadataFilter extends IndexingAndSearchWithLocalFeatures{
+    // Path to directory with all the images to be indexed
     public static String  IMG_DIRECTORY = "/Users/juanluisrto/Documents/Universidad/UPM/information retrieval/samples/simpleapplication/img/flickr30k_images/tiny";
+    // Path to image to which is going to be searched
     public static String IMG_TO_SEARCH = "/Users/juanluisrto/Documents/Universidad/UPM/information retrieval/samples/simpleapplication/img/flickr30k_images/search/952262215.jpg";
 
 
     public static void main(String[] args) throws IOException, ImageProcessingException {
-        // indexing all images in "testdata"
+        // indexing all images in "IMG_DIRECTORY"
         index("index", IMG_DIRECTORY);
         // searching through the images.
         search("index",IMG_TO_SEARCH, 350, 350);
     }
-
-    public static void search(String indexPath,String imgPath, int minHeight, int minWidth) throws IOException, ImageProcessingException {
+    /**
+     * Our extension to the LIRE framework consists in adding a filter which selects the images which have certain size dimensions.
+     * To know the size of the images we use the metadata-extractor package, and then we filter out the ones that are too small.
+     * @param indexPath : Path to the folder where the index is stored.
+     * @param imgPath: Path to the img which is going to be searched
+     * @param minHeight: Minimum height desired for the images
+     * @param minWidth: Minimum widht desired for the images
+    */
+    public static void search(String indexPath, String imgPath, int minHeight, int minWidth) throws IOException, ImageProcessingException {
+        //We initialize the reader which will retrieve the index information from the stored file.
         IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(indexPath)));
 
-        // make sure that this matches what you used for indexing (see below) ...
+        //We initialize an image searcher
         ImageSearcher imgSearcher = new GenericFastImageSearcher(10, CEDD.class, SimpleExtractor.KeypointDetector.CVSURF, new BOVW(), 128, true, reader, indexPath + ".config");
-        // just a static example with a given image.
-        ImageSearchHits hits = imgSearcher.search(ImageIO.read(new File(imgPath)), reader);
 
+        ImageSearchHits hits = imgSearcher.search(ImageIO.read(new File(imgPath)), reader);
+        // We initialize this arraylist to store the hits which comply to our requested size,
         ArrayList<ImageHit> filteredImages = new ArrayList<ImageHit> ();
 
         for (int i=0; i<hits.length(); i++) {
@@ -53,10 +62,11 @@ public class MetadataFilter extends IndexingAndSearchWithLocalFeatures{
             for (Directory directory : metadata.getDirectories()) {
                 if (directory.getName().equals("JPEG")){
                     for (Tag tag : directory.getTags()) {
-                        //System.out.println("TAG: " + tag.getTagName() + " = " + tag.getDescription());
+                        // we store the image height
                         if(tag.getTagName().equals("Image Height")){
                             height = extractPixels(tag.getDescription());
                         }
+                        // we store the image width
                         else if(tag.getTagName().equals("Image Width")){
                             width = extractPixels(tag.getDescription());
                         }
@@ -68,6 +78,7 @@ public class MetadataFilter extends IndexingAndSearchWithLocalFeatures{
                     }
                 }
             }
+            // if the height and width are greater than required, then we create a new ImageHit object and store it on filteredImages.
             if (height > minHeight && width > minWidth){
                 ImageHit image = new ImageHit(hitPath, hits.score(i), height, width);
                 filteredImages.add(image);
@@ -75,12 +86,10 @@ public class MetadataFilter extends IndexingAndSearchWithLocalFeatures{
         }
 
         for (ImageHit  image : filteredImages){
+            // We just print out the images which are similar and comply with the height and width requirements.
             System.out.println(image.toString());
 
         }
-        //System.out.printf("%.2f: (%d) %s --- %s\n", hits.score(i), hits.documentID(i), metadata.getDirectoryCount(), reader.document(hits.documentID(i)).getValues(DocumentBuilder.FIELD_NAME_IDENTIFIER)[0]);
-        //Metadata metadata = ImageMetadataReader.readMetadata(new File(IMG_TO_SEARCH));
-
 
 
     }
@@ -92,10 +101,10 @@ public class MetadataFilter extends IndexingAndSearchWithLocalFeatures{
 
 
 class ImageHit {
-    public String path;
-    public double score;
-    public int height;
-    public int width;
+    public String path; //path to the image
+    public double score; //score obtained
+    public int height; //height of the image in pixels
+    public int width;  //width of the image in pixels
 
     public ImageHit(String path, double score, int height, int width){
         this.path = path;
